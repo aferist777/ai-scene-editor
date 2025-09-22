@@ -18,16 +18,54 @@ export class GeminiService {
   private loggingService = inject(LoggingService);
 
   constructor() {
-    if (!process.env.API_KEY) {
-      const errorMessage = "API_KEY environment variable not found. Please set it to use the Gemini API.";
+    const apiKey = this.resolveApiKey();
+
+    if (!apiKey) {
+      const errorMessage =
+        "API key was not found. Please provide it via the API_KEY or GEMINI_API_KEY environment variable (or expose it on window.__env).";
       this.error.set(errorMessage);
       console.error(errorMessage);
       this.loggingService.log(errorMessage, 'api-error');
       // @ts-ignore
       this.genAI = null;
     } else {
-      this.genAI = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      this.genAI = new GoogleGenAI({ apiKey });
     }
+  }
+
+  private resolveApiKey(): string | undefined {
+    const processEnv = typeof process !== 'undefined' ? process.env : undefined;
+    if (processEnv?.API_KEY) {
+      return processEnv.API_KEY;
+    }
+    if (processEnv?.GEMINI_API_KEY) {
+      return processEnv.GEMINI_API_KEY;
+    }
+
+    if (typeof window !== 'undefined') {
+      const win = window as unknown as {
+        API_KEY?: string;
+        GEMINI_API_KEY?: string;
+        env?: Record<string, string | undefined>;
+        __env?: Record<string, string | undefined>;
+      };
+      const directKey = win.API_KEY ?? win.GEMINI_API_KEY;
+      if (directKey) {
+        return directKey;
+      }
+
+      const envKey = win.env?.API_KEY ?? win.env?.GEMINI_API_KEY;
+      if (envKey) {
+        return envKey;
+      }
+
+      const legacyKey = win.__env?.API_KEY ?? win.__env?.GEMINI_API_KEY;
+      if (legacyKey) {
+        return legacyKey;
+      }
+    }
+
+    return undefined;
   }
 
   private getErrorMessage(error: unknown): string {
