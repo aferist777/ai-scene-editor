@@ -1,0 +1,107 @@
+<div class="animate-fade-in">
+  <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center gap-4">
+        <h2 class="text-2xl font-bold text-violet-300">Step 2: Character Refinement</h2>
+        <button (click)="resetStep2()" title="Reset Step 2" class="text-gray-400 hover:text-white transition">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 110 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+          </svg>
+        </button>
+      </div>
+      <button (click)="step.set(1)" class="text-sm text-violet-400 hover:underline">← Back to Setup</button>
+  </div>
+  
+  <div class="bg-gray-800/50 p-6 rounded-lg shadow-2xl border border-gray-700">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <!-- Style Selection -->
+          <div class="lg:col-span-1">
+              <h3 class="font-bold text-lg mb-4 text-gray-300">Drawing Styles</h3>
+              <div class="space-y-3">
+                  @for (style of drawingStyles; track style) {
+                      <label class="flex items-center space-x-3 p-3 bg-gray-900/50 rounded-md border border-gray-700 hover:border-violet-500 transition cursor-pointer">
+                          <input type="checkbox" (change)="onStyleChange(style, $event)" [checked]="selectedStyles().includes(style)" class="h-5 w-5 rounded bg-gray-700 border-gray-600 text-violet-600 focus:ring-violet-500">
+                          <span class="text-gray-300 text-sm">{{ style }}</span>
+                      </label>
+                  }
+              </div>
+              <div class="mt-6">
+                <h3 class="font-bold text-lg mb-2 text-gray-300">Prompt Composer</h3>
+                <textarea readonly
+                  class="w-full h-40 bg-gray-900 border border-gray-600 rounded-md px-3 py-2 text-sm text-gray-400 focus:ring-violet-500 focus:border-violet-500 transition"
+                  placeholder="Your prompt will be composed here. Click the AI-Generated Prompt to add it, and use the 'Refine Prompt' field to add more details."
+                >{{ composedPrompt() }}</textarea>
+                <button (click)="beautifyPrompt()" [disabled]="!composedPrompt().trim() || isBeautifyingPrompt()" class="w-full mt-2 px-4 py-2 bg-indigo-600 rounded-md font-semibold hover:bg-indigo-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors duration-300 text-sm flex items-center justify-center gap-2">
+                  @if (isBeautifyingPrompt()) {
+                      <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <span>Beautifying... @if(beautifyPromptElapsed() > 0) {{{ formatTimer(beautifyPromptElapsed()) }}}</span>
+                  } @else {
+                      <span>✨ Beautify Prompt</span>
+                  }
+                </button>
+                @if(beautifiedPrompt()) {
+                  <button (click)="generateRefinedCharacter()" [disabled]="isRegeneratingCharacter()" class="w-full mt-2 px-4 py-2 bg-teal-600 rounded-md font-semibold hover:bg-teal-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors duration-300 text-sm flex items-center justify-center gap-2">
+                      @if (isRegeneratingCharacter()) {
+                          <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          <span>Generating... @if(regenerateCharacterElapsed() > 0) {{{ formatTimer(regenerateCharacterElapsed()) }}}</span>
+                      } @else {
+                          <span>Generate with Beautified Prompt</span>
+                      }
+                  </button>
+                }
+              </div>
+          </div>
+
+          <!-- Character Images and Prompt -->
+          <div class="lg:col-span-2">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <div>
+                      <h3 class="font-bold text-lg mb-2 text-gray-300">Original Reference</h3>
+                      <img [src]="characterReferenceImage()" alt="Original character reference" class="rounded-lg border border-gray-600 w-full object-contain">
+                  </div>
+                  <div>
+                      <h3 class="font-bold text-lg mb-2 text-gray-300">Generated Character</h3>
+                      @if(isRegeneratingCharacter()) {
+                        <div class="w-full aspect-[9/16] flex items-center justify-center bg-gray-900/50 rounded-lg border border-gray-600">
+                          <svg class="animate-spin h-8 w-8 text-violet-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        </div>
+                      } @else {
+                         <img [src]="generatedCharacterImage()" alt="Generated character image" class="rounded-lg border border-gray-600 w-full object-contain">
+                      }
+                  </div>
+              </div>
+
+              <div>
+                  <h3 class="font-bold text-lg mb-2 text-gray-300">AI-Generated Prompt <span class="text-sm font-normal text-gray-400">(Click to add to composer)</span></h3>
+                  @if (isGeneratingCharacterPrompt()) {
+                      <div class="p-4 bg-gray-900/50 rounded-md border border-gray-600 text-gray-400 text-sm">Generating prompt from image...</div>
+                  } @else {
+                     <p (click)="addCharacterPromptToComposer()" class="p-4 bg-gray-900/50 rounded-md border border-gray-600 text-gray-400 text-sm cursor-pointer hover:border-violet-500 transition-colors">{{ characterPrompt() }}</p>
+                  }
+                  
+                  <div class="mt-4">
+                      <label for="promptModification" class="block text-sm font-medium text-gray-300 mb-1">Refine Prompt</label>
+                      <div class="flex gap-2">
+                          <input id="promptModification" type="text" [value]="characterPromptModification()" (input)="onModificationInput($event)" placeholder="Add details: e.g., 'wearing a red hat', 'smiling mischievously'" class="flex-grow bg-gray-900 border border-gray-600 rounded-md px-3 py-2 focus:ring-violet-500 focus:border-violet-500 transition">
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <div class="mt-8 text-right">
+    <button (click)="proceedToSceneBreakdown()" [disabled]="isGeneratingCharacterPrompt() || isRegeneratingCharacter() || isBreakingDownScenes()" class="px-6 py-2 bg-violet-600 rounded-md font-semibold hover:bg-violet-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors duration-300">
+      @if (isBreakingDownScenes()) {
+        <span>Generating Descriptions... @if(breakingDownScenesElapsed() > 0) {{{ formatTimer(breakingDownScenesElapsed()) }}}</span>
+      } @else {
+        <span>Next: Review Scenes</span>
+      }
+    </button>
+  </div>
+</div>

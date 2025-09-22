@@ -1,0 +1,38 @@
+@if (isVisible()) {
+  <div class="fixed bottom-0 left-0 right-0 h-64 bg-gray-900/90 backdrop-blur-sm border-t border-violet-700/50 shadow-2xl z-50 animate-fade-in">
+    <div class="flex justify-between items-center p-2 bg-gray-800 border-b border-gray-700">
+      <h3 class="font-bold text-sm text-violet-300">Application Log</h3>
+      <div class="flex items-center gap-2">
+        <button (click)="clearLogs()" class="px-2 py-0.5 text-xs bg-red-800 hover:bg-red-700 rounded transition-colors">Clear</button>
+        <button (click)="toggleVisibility()" class="px-2 py-0.5 text-xs bg-gray-600 hover:bg-gray-500 rounded transition-colors">Hide</button>
+      </div>
+    </div>
+    <div class="h-[calc(100%-41px)] overflow-y-auto p-2 font-mono text-xs">
+      @for (log of logs(); track log.timestamp) {
+        <div class="flex items-start gap-2 mb-1.5 text-gray-300">
+          <span class="text-gray-500 whitespace-nowrap">{{ log.timestamp.toLocaleTimeString() }}</span>
+          @switch (log.type) {
+            @case ('api-request') { <span class="text-sky-400 font-bold whitespace-nowrap">[API REQ]</span> }
+            @case ('api-success') { <span class="text-green-400 font-bold whitespace-nowrap">[API OK]</span> }
+            @case ('api-error') { <span class="text-red-400 font-bold whitespace-nowrap">[API ERR]</span> }
+            @case ('action') { <span class="text-amber-400 font-bold whitespace-nowrap">[ACTION]</span> }
+            @default { <span class="text-gray-400 font-bold whitespace-nowrap">[INFO]</span> }
+          }
+          <div class="flex-grow">
+            <p class="whitespace-pre-wrap">{{ log.message }}</p>
+            @if(log.details) {
+              <details class="mt-1">
+                <summary class="cursor-pointer text-gray-500 text-xs">Details</summary>
+                <pre class="bg-black/30 p-1 rounded-md text-gray-400 mt-1 text-[10px]">{{ formatDetails(log.details) }}</pre>
+              </details>
+            }
+          </div>
+        </div>
+      } @empty {
+        <div class="text-center text-gray-500 pt-8">Log is empty.</div>
+      }
+    </div>
+  </div>
+} @else {
+  <button (click)="toggleVisibility()" class="fixed bottom-4 right-4 px-3 py-2 text-xs bg-violet-700 hover:bg-violet-600 rounded-full transition-colors z-50 shadow-lg">Show Logs</button>
+}

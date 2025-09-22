@@ -1,0 +1,108 @@
+<div class="bg-gray-800/50 p-6 rounded-lg shadow-2xl border border-gray-700 animate-fade-in">
+  <h2 class="text-2xl font-bold text-violet-300 mb-4 border-b border-gray-600 pb-2 flex justify-between items-center">
+    <span>Step 1: Project Setup</span>
+    <button (click)="resetStep1()" title="Reset Step 1" class="text-gray-400 hover:text-white transition">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 110 2H4a1 1 0 01-1-1V3a1 1 D0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+      </svg>
+    </button>
+  </h2>
+  
+  <div class="space-y-6">
+    <div>
+      <label for="projectTitle" class="block text-sm font-medium text-gray-300 mb-1">Project Title</label>
+      <input id="projectTitle" type="text" [value]="projectTitle()" (input)="onProjectTitleInput($event)" class="w-full bg-gray-900 border border-gray-600 rounded-md px-3 py-2 focus:ring-violet-500 focus:border-violet-500 transition">
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+       <div>
+          <label class="block text-sm font-medium text-gray-300 mb-1">Character Reference Image</label>
+          @if(characterReferenceImage()) {
+            <div class="mt-1 relative group w-fit">
+              <button (click)="enlargeImage(characterReferenceImage())" class="cursor-zoom-in block" aria-label="Enlarge image">
+                <img [src]="characterReferenceImage()" alt="Character Reference" class="max-h-96 rounded-md border border-gray-600">
+              </button>
+              <button (click)="characterReferenceImage.set(null)" class="absolute top-1.5 right-1.5 bg-red-600/70 hover:bg-red-500 text-white font-bold p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10" aria-label="Remove image">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+              </button>
+            </div>
+          } @else {
+            <div class="mt-1 flex flex-col justify-center px-6 pt-5 pb-6 border-2 border-gray-600 border-dashed rounded-md min-h-60">
+              <div class="space-y-1 text-center flex flex-col justify-center">
+                <svg class="mx-auto h-12 w-12 text-gray-500" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                <div class="flex text-sm text-gray-400 justify-center">
+                  <label for="file-upload" class="relative cursor-pointer bg-gray-800/0 rounded-md font-medium text-violet-400 hover:text-violet-300 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-offset-gray-900 focus-within:ring-violet-500">
+                    <span>Upload an image</span>
+                    <input id="file-upload" name="file-upload" type="file" class="sr-only" (change)="onFileSelected($event)" accept="image/png, image/jpeg, image/webp">
+                  </label>
+                </div>
+                <p class="text-xs text-gray-500">PNG, JPG, WEBP</p>
+                 <p class="text-sm text-gray-500 font-bold my-2">OR</p>
+                 <p class="text-xs text-gray-500">Generate one using the prompt controls below.</p>
+              </div>
+            </div>
+          }
+      </div>
+      <div>
+        <label for="poem" class="block text-sm font-medium text-gray-300 mb-1">Poem Text</label>
+        <textarea id="poem" rows="10" [value]="poemText()" (input)="onPoemInput($event)" class="w-full h-full bg-gray-900 border border-gray-600 rounded-md px-3 py-2 font-mono text-sm focus:ring-violet-500 focus:border-violet-500 transition"></textarea>
+      </div>
+    </div>
+    
+    <div class="mt-4 pt-4 border-t border-gray-700">
+      <label for="character-prompt" class="block text-sm font-medium text-gray-300">Character Prompt</label>
+      <p class="text-xs text-gray-500 mb-2">Write a prompt for the character, or click "Create" to generate one from the poem.</p>
+      <textarea 
+        id="character-prompt" 
+        rows="4" 
+        [value]="characterPromptStep1()" 
+        (input)="onPromptInput($event)"
+        placeholder="e.g., A young girl with pigtails climbing a fence, cartoon style"
+        class="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-sm focus:ring-violet-500 focus:border-violet-500 transition"
+      ></textarea>
+      <div class="grid grid-cols-3 gap-2 text-sm mt-2">
+        <button (click)="createCharacterPrompt()" [disabled]="isCreatingCharacterPrompt()" class="px-4 py-2 bg-indigo-600 rounded-md font-semibold hover:bg-indigo-700 disabled:bg-gray-600 transition-colors duration-300">
+          @if (isCreatingCharacterPrompt()) {
+            <span>Creating... @if(createCharacterPromptElapsed() > 0) {{{ formatTimer(createCharacterPromptElapsed()) }}}</span>
+          } @else {
+            <span>Create</span>
+          }
+        </button>
+        <button (click)="makeCharacterImage()" [disabled]="isMakingCharacterImage() || !characterPromptStep1().trim()" class="px-4 py-2 bg-teal-600 rounded-md font-semibold hover:bg-teal-700 disabled:bg-gray-600 transition-colors duration-300">
+          @if (isMakingCharacterImage()) {
+            <span>Making... @if(makeCharacterImageElapsed() > 0) {{{ formatTimer(makeCharacterImageElapsed()) }}}</span>
+          } @else {
+            <span>Make</span>
+          }
+        </button>
+        <button (click)="makeCharacterImage(true)" [disabled]="isMakingCharacterImage() || !characterReferenceImage()" class="px-4 py-2 bg-teal-800 rounded-md font-semibold hover:bg-teal-700 disabled:bg-gray-600 transition-colors duration-300">
+          Remake
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="mt-8 text-right">
+    <button (click)="proceedToCharacterStep()" [disabled]="!isStep1Valid()" class="px-6 py-2 bg-violet-600 rounded-md font-semibold hover:bg-violet-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors duration-300">
+      Next: Refine Character
+    </button>
+  </div>
+</div>
+
+<!-- Image enlargement modal -->
+@if (enlargedImage(); as src) {
+  <div (click)="closeEnlargedImage()" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in cursor-zoom-out p-4">
+    <img 
+      (click)="$event.stopPropagation()" 
+      [src]="src" 
+      alt="Enlarged character reference" 
+      class="max-w-full max-h-full object-contain rounded-lg shadow-2xl cursor-default"
+    >
+    <button (click)="closeEnlargedImage()" class="absolute top-4 right-4 bg-white/20 hover:bg-white/40 text-white p-2 rounded-full transition-colors" aria-label="Close enlarged image">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+    </button>
+  </div>
+}

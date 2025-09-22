@@ -1,0 +1,111 @@
+<div class="animate-fade-in">
+  <div class="flex items-center justify-between mb-4">
+    <div class="flex items-center gap-4">
+      <h2 class="text-2xl font-bold text-violet-300">Step 6: Social Media Pack</h2>
+      <button (click)="resetStep6()" title="Reset Step 6" class="text-gray-400 hover:text-white transition">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 110 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+        </svg>
+      </button>
+    </div>
+    <button (click)="step.set(5)" class="text-sm text-violet-400 hover:underline">← Back to Project Assets</button>
+  </div>
+  
+  <div class="bg-gray-800/50 p-6 rounded-lg shadow-2xl border border-gray-700">
+      <div class="flex justify-between items-start mb-4">
+        <div>
+          <h3 class="text-lg font-bold text-gray-300">Social Media & Thumbnail</h3>
+          <p class="text-xs text-gray-500">Generate marketing copy and a thumbnail for YouTube and TikTok.</p>
+        </div>
+        <button (click)="generateSocial()" [disabled]="isGeneratingSocial()" class="px-4 py-2 bg-sky-600 rounded-md font-semibold hover:bg-sky-700 disabled:bg-gray-600 transition-colors duration-300">
+          @if(isGeneratingSocial()) {
+            <span>Generating... @if(generateSocialElapsed() > 0) {{{ formatTimer(generateSocialElapsed()) }}}</span>
+          } @else {
+            <span>Generate All</span>
+          }
+        </button>
+      </div>
+
+      @if(socialPack(); as pack) {
+         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 text-sm animate-fade-in">
+           <!-- Left Column: Social Copy -->
+           <div class="space-y-6">
+              <!-- YouTube -->
+             <div class="bg-gray-900/50 p-4 rounded-lg border border-gray-700">
+                <h4 class="font-bold text-sky-300 text-base mb-2">YouTube</h4>
+                <p><strong>Title:</strong> {{pack.youtube.title}}</p>
+                <p class="mt-2"><strong>Description:</strong><br><span class="text-gray-400 whitespace-pre-wrap">{{pack.youtube.description}}</span></p>
+                <div class="mt-2">
+                  <strong>Hashtags:</strong>
+                  <div class="flex flex-wrap gap-1 mt-1">
+                    @for(tag of pack.youtube.hashtags; track tag) { <span class="text-xs bg-sky-900/70 text-sky-300 rounded px-2 py-0.5">{{tag}}</span> }
+                  </div>
+                </div>
+                <div class="mt-2">
+                  <strong>Keywords:</strong>
+                  <div class="flex flex-wrap gap-1 mt-1">
+                    @for(kw of pack.youtube.keywords; track kw) { <span class="text-xs bg-gray-700 text-gray-300 rounded px-2 py-0.5">{{kw}}</span> }
+                  </div>
+                </div>
+                <div class="mt-2">
+                  <strong>Tags:</strong>
+                  <div class="flex flex-wrap gap-1 mt-1">
+                    @for(tag of pack.youtube.tags; track tag) { <span class="text-xs bg-gray-700 text-gray-300 rounded px-2 py-0.5">{{tag}}</span> }
+                  </div>
+                </div>
+             </div>
+             <!-- TikTok -->
+             <div class="bg-gray-900/50 p-4 rounded-lg border border-gray-700">
+                <h4 class="font-bold text-sky-300 text-base mb-2">TikTok</h4>
+                <p><strong>Bio:</strong> {{pack.tiktok.bio}}</p>
+                <p class="mt-2"><strong>Video Description:</strong><br><span class="text-gray-400 whitespace-pre-wrap">{{pack.tiktok.description}}</span></p>
+                <div class="mt-2">
+                  <strong>Hashtags:</strong>
+                  <div class="flex flex-wrap gap-1 mt-1">
+                    @for(tag of pack.tiktok.hashtags; track tag) { <span class="text-xs bg-sky-900/70 text-sky-300 rounded px-2 py-0.5">{{tag}}</span> }
+                  </div>
+                </div>
+             </div>
+           </div>
+
+            <!-- Right Column: Thumbnail Generation -->
+            <div class="bg-gray-900/50 p-4 rounded-lg border border-gray-700">
+              <h4 class="font-bold text-sky-300 text-base mb-2">YouTube Thumbnail</h4>
+              <div class="aspect-video bg-gray-800 rounded-md border border-gray-600 flex items-center justify-center mb-4">
+                @if(isGeneratingThumbnail()) {
+                  <div class="text-center text-gray-400">
+                    <svg class="animate-spin h-8 w-8 text-sky-400 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    <p class="text-sm mt-2">Generating...</p>
+                  </div>
+                } @else if(youtubeThumbnail(); as thumb) {
+                  <img [src]="thumb" alt="Generated YouTube thumbnail" class="w-full h-full object-cover rounded-md">
+                } @else {
+                  <p class="text-gray-500 text-sm">Thumbnail will appear here</p>
+                }
+              </div>
+              <div>
+                  <label class="block text-xs font-medium text-gray-400 mb-1">Recommended Prompt:</label>
+                  <textarea readonly rows="3" class="w-full text-xs bg-gray-700 border border-gray-600 rounded-md px-2 py-1 text-gray-300">{{ recommendedThumbnailPrompt() ?? 'Generate social pack to get a recommendation...' }}</textarea>
+              </div>
+              <div class="mt-2">
+                  <label class="block text-xs font-medium text-gray-400 mb-1">Add Details:</label>
+                  <input type="text" (input)="thumbnailPromptModification.set($event.target.value)" placeholder="e.g., 'with vibrant colors', 'close-up on face'" class="w-full text-xs bg-gray-700 border border-gray-600 rounded-md px-2 py-1 focus:ring-sky-500 focus:border-sky-500 transition">
+              </div>
+              <button (click)="generateThumbnail()" [disabled]="!recommendedThumbnailPrompt() || isGeneratingThumbnail()" class="w-full mt-3 px-4 py-2 bg-teal-600 rounded-md font-semibold hover:bg-teal-700 disabled:bg-gray-600 transition-colors duration-300 text-sm">
+                @if(isGeneratingThumbnail()) {
+                  <span>Generating... @if(generateThumbnailElapsed() > 0) {{{ formatTimer(generateThumbnailElapsed()) }}}</span>
+                } @else {
+                  <span>Generate Thumbnail</span>
+                }
+              </button>
+            </div>
+
+         </div>
+      }
+  </div>
+  <div class="mt-8 text-center">
+    <button (click)="startOver()" class="px-8 py-3 bg-green-600 rounded-md font-semibold hover:bg-green-700 transition-colors duration-300">
+      🎉 All Done! Start a New Project
+    </button>
+  </div>
+</div>

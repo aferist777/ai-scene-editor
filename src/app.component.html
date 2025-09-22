@@ -1,0 +1,32 @@
+<div class="min-h-screen container mx-auto p-4 md:p-8 flex flex-col items-center pb-72">
+  @if (apiError()) {
+    <div class="w-full max-w-7xl bg-red-800/50 border border-red-600 text-red-200 px-4 py-3 rounded-lg mb-6" role="alert">
+      <strong class="font-bold">API Error:</strong>
+      <span class="block sm:inline">{{ apiError() }}</span>
+    </div>
+  }
+
+  <main class="w-full max-w-7xl">
+    @switch (step()) {
+      @case (1) {
+        <app-step1-setup></app-step1-setup>
+      }
+      @case (2) {
+        <app-step2-character></app-step2-character>
+      }
+      @case (3) {
+        <app-step3-scenes></app-step3-scenes>
+      }
+      @case (4) {
+        <app-step4-editor></app-step4-editor>
+      }
+      @case (5) {
+        <app-step5-assets></app-step5-assets>
+      }
+      @case (6) {
+        <app-step6-social></app-step6-social>
+      }
+    }
+  </main>
+  <app-log-panel></app-log-panel>
+</div>

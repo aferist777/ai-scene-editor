@@ -1,0 +1,78 @@
+<div class="animate-fade-in">
+  <div class="flex items-center justify-between mb-4">
+    <div class="flex items-center gap-4">
+      <h2 class="text-2xl font-bold text-violet-300">Step 3: Review Scenes & Add Descriptions</h2>
+      <button (click)="reloadStep3()" title="Reload Step 3" [disabled]="isBreakingDownScenes()" class="text-gray-400 hover:text-white transition disabled:text-gray-600 disabled:cursor-not-allowed">
+        @if(isBreakingDownScenes()) {
+          <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 R0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        } @else {
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 110 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+          </svg>
+        }
+      </button>
+    </div>
+    <button (click)="step.set(2)" class="text-sm text-violet-400 hover:underline">← Back to Character</button>
+  </div>
+
+  <div class="bg-gray-800/50 p-6 rounded-lg shadow-2xl border border-gray-700">
+    <div class="flex items-center justify-between mb-2">
+      <h3 class="font-bold text-lg text-gray-300">Storyboard Scenes</h3>
+      <button (click)="recreateAllSceneDescriptions()" [disabled]="isRecreatingScenes() || scenes().length === 0" class="flex items-center gap-2 px-3 py-1 text-xs bg-indigo-800 rounded-md font-semibold hover:bg-indigo-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors">
+          @if (isRecreatingScenes()) {
+            <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <span>Re-imagining... @if(recreatingScenesElapsed() > 0) {{{ formatTimer(recreatingScenesElapsed()) }}}</span>
+          } @else {
+            <span>✨ Re-imagine Scenes</span>
+          }
+        </button>
+    </div>
+    <p class="text-xs text-gray-500 mb-4">The poem has been automatically split into scenes. You can enrich descriptions or recreate the entire storyboard in a new setting.</p>
+    
+    @if (scenes().length === 0) {
+      <div class="flex-grow flex items-center justify-center text-center text-gray-500 border-2 border-dashed border-gray-600 rounded-lg p-8">
+        <p>No scenes were generated. Go back and add some text to your poem.</p>
+      </div>
+    } @else {
+      <div class="space-y-4 overflow-y-auto max-h-[500px] pr-2">
+        @for(scene of scenes(); track scene.id) {
+          <div class="bg-gray-900 p-3 rounded-lg border border-gray-700 animate-fade-in">
+            <div class="flex justify-between items-start">
+                <p class="font-mono text-sm text-gray-300 whitespace-pre-wrap pr-2">{{ scene.lines }}</p>
+                <div class="flex items-center gap-2 flex-shrink-0">
+                  <button (click)="enrichSceneDescription(scene.id)" [disabled]="scene.isEnriching || !scene.description" title="Make description richer" class="flex items-center gap-1 px-2 py-1 text-xs bg-teal-800 rounded-md font-semibold hover:bg-teal-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors min-w-[90px]">
+                    @if (scene.isEnriching) {
+                      <svg class="animate-spin h-3 w-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                      <span>Enriching... @if(scene.enrichingElapsed && scene.enrichingElapsed > 0) {{{ formatTimer(scene.enrichingElapsed) }}}</span>
+                    } @else {
+                      <span>✨ Make Rich</span>
+                    }
+                  </button>
+                  <button (click)="removeScene(scene.id)" class="text-red-400 hover:text-red-300 text-xs font-bold p-1">X</button>
+                </div>
+            </div>
+            <div class="mt-2 space-y-2">
+              <div>
+                <label class="text-xs text-gray-400">English Description</label>
+                <textarea placeholder="Add a detailed scene description..." [value]="scene.description" (input)="updateSceneDescription(scene.id, 'en', $event)" rows="3" class="w-full text-sm bg-gray-700 border border-gray-600 rounded-md px-2 py-1 focus:ring-violet-500 focus:border-violet-500 transition resize-y"></textarea>
+              </div>
+              <div>
+                <label class="text-xs text-gray-400">Russian Description</label>
+                <textarea placeholder="Добавьте подробное описание сцены..." [value]="scene.description_ru ?? ''" (input)="updateSceneDescription(scene.id, 'ru', $event)" rows="3" class="w-full text-sm bg-gray-700 border border-gray-600 rounded-md px-2 py-1 focus:ring-violet-500 focus:border-violet-500 transition resize-y"></textarea>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+  
+  <div class="mt-8 text-right">
+    <button (click)="proceedToSceneEditor()" [disabled]="scenes().length === 0" class="px-6 py-2 bg-violet-600 rounded-md font-semibold hover:bg-violet-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors duration-300">
+      Next: Edit Scenes
+    </button>
+  </div>
+</div>

@@ -1,0 +1,69 @@
+<div class="animate-fade-in">
+  <div class="flex items-center justify-between mb-4">
+    <div class="flex items-center gap-4">
+      <h2 class="text-2xl font-bold text-violet-300">Step 5: Project Assets (Music & SFX)</h2>
+      <button (click)="resetStep5()" title="Reset Step 5" class="text-gray-400 hover:text-white transition">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 110 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+        </svg>
+      </button>
+    </div>
+    <button (click)="step.set(4)" class="text-sm text-violet-400 hover:underline">← Back to Scene Editor</button>
+  </div>
+  
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <!-- Music Plan -->
+      <div class="bg-gray-800/50 p-6 rounded-lg shadow-2xl border border-gray-700">
+          <h3 class="text-lg font-bold mb-2 text-gray-300">Music Plan</h3>
+          <p class="text-xs text-gray-500 mb-4">Generate a 3-part musical score plan based on the mood of the poem.</p>
+          <button (click)="generateMusic()" [disabled]="isGeneratingMusic()" class="w-full mb-4 px-4 py-2 bg-teal-600 rounded-md font-semibold hover:bg-teal-700 disabled:bg-gray-600 transition-colors duration-300">
+            @if(isGeneratingMusic()) {
+              <span>Generating... @if(generateMusicElapsed() > 0) {{{ formatTimer(generateMusicElapsed()) }}}</span>
+            } @else {
+              <span>Generate 3-Part Music Score</span>
+            }
+          </button>
+          @if(musicPlan(); as plan) {
+             <div class="space-y-3 text-sm animate-fade-in">
+               <p><strong class="text-teal-300">Part 1:</strong> {{plan.part1}}</p>
+               <p><strong class="text-teal-300">Part 2:</strong> {{plan.part2}}</p>
+               <p><strong class="text-teal-300">Part 3:</strong> {{plan.part3}}</p>
+             </div>
+          }
+      </div>
+
+      <!-- SFX Plan -->
+      <div class="bg-gray-800/50 p-6 rounded-lg shadow-2xl border border-gray-700">
+          <h3 class="text-lg font-bold mb-2 text-gray-300">Sound Effects (SFX) Plan</h3>
+           <p class="text-xs text-gray-500 mb-4">Generate sound effect ideas for every scene based on their final animation prompts.</p>
+          <button (click)="generateSfx()" [disabled]="isGeneratingSfx()" class="w-full mb-4 px-4 py-2 bg-indigo-600 rounded-md font-semibold hover:bg-indigo-700 disabled:bg-gray-600 transition-colors duration-300">
+            @if(isGeneratingSfx()) {
+              <span>Generating... @if(generateSfxElapsed() > 0) {{{ formatTimer(generateSfxElapsed()) }}}</span>
+            } @else {
+              <span>Generate SFX for All Scenes</span>
+            }
+          </button>
+          @if(sfxPlan(); as plan) {
+             <div class="space-y-4 text-sm animate-fade-in max-h-96 overflow-y-auto pr-2">
+               @for (item of plan; track item.sceneId; let i = $index) {
+                <div class="bg-gray-900 p-3 rounded-lg border border-gray-700">
+                  <p class="font-bold text-indigo-300">Scene {{ i + 1 }}</p>
+                  <p class="font-mono text-xs text-gray-400 whitespace-pre-wrap mb-2">{{ item.sceneLines }}</p>
+                  <div class="flex flex-wrap gap-2">
+                      @for(sfx of item.sfx; track sfx) {
+                          <span class="bg-indigo-900/50 text-indigo-300 text-xs font-medium px-2.5 py-0.5 rounded-full border border-indigo-700">{{ sfx }}</span>
+                      }
+                  </div>
+                </div>
+               }
+             </div>
+          }
+      </div>
+  </div>
+
+  <div class="mt-8 text-right">
+    <button (click)="step.set(6)" class="px-6 py-2 bg-violet-600 rounded-md font-semibold hover:bg-violet-700 transition-colors duration-300">
+      Next: Generate Social Pack
+    </button>
+  </div>
+</div>

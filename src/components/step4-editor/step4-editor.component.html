@@ -1,0 +1,301 @@
+<div class="animate-fade-in">
+@if (currentScene(); as scene) {
+  <div class="flex items-center justify-between mb-4">
+    <div class="flex items-center gap-4 flex-wrap">
+      <h2 class="text-2xl font-bold text-violet-300">Step 4: Scene Editor <span class="text-gray-400 font-normal text-xl">({{currentSceneIndex() + 1}}/{{scenes().length}})</span></h2>
+      <div class="flex items-center gap-1 bg-gray-900/50 p-1 rounded-md border border-gray-700">
+        @for (scene of scenes(); track scene.id; let i = $index) {
+          <button 
+            (click)="goToScene(i)"
+            [class.bg-violet-600]="i === currentSceneIndex()"
+            [class.text-white]="i === currentSceneIndex()"
+            [class.bg-gray-700]="i !== currentSceneIndex()"
+            [class.text-gray-300]="i !== currentSceneIndex()"
+            class="w-8 h-8 rounded text-sm font-bold hover:bg-violet-500 transition-colors"
+            [title]="'Go to Scene ' + (i + 1)"
+          >
+            {{ i + 1 }}
+          </button>
+        }
+      </div>
+      <button (click)="resetStep4()" title="Reset Step 4" class="text-gray-400 hover:text-white transition">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 110 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+        </svg>
+      </button>
+    </div>
+    <button (click)="step.set(3)" class="text-sm text-violet-400 hover:underline">← Back to Storyboard</button>
+  </div>
+
+  <div class="bg-gray-800/50 p-6 rounded-lg shadow-2xl border border-gray-700">
+    <!-- Scene Details -->
+    <div class="mb-6 bg-gray-900 p-4 rounded-lg border border-gray-600">
+      <p class="font-mono text-lg text-gray-300 whitespace-pre-wrap">{{ scene.lines }}</p>
+      <p class="mt-2 text-sm italic text-gray-400">{{ scene.description }}</p>
+      @if(scene.description_ru) {
+        <p class="mt-2 text-sm italic text-gray-400 border-t border-gray-700 pt-2">{{ scene.description_ru }}</p>
+      }
+    </div>
+
+    @if (!scene.generatedAssets) {
+      <div class="text-center py-8">
+         <button (click)="generateAssetsForScene(scene.id)" [disabled]="scene.isGenerating || !scene.description.trim()" class="px-8 py-3 bg-violet-600 rounded-md font-semibold hover:bg-violet-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors duration-300 text-lg">
+          @if (scene.isGenerating) {
+            <span>Generating Assets... @if(scene.generatingElapsed && scene.generatingElapsed > 0) {{{ formatTimer(scene.generatingElapsed) }}}</span>
+          } @else if (!scene.description.trim()) {
+             <span>Add description to generate</span>
+          } @else {
+            <span>Generate Assets</span>
+          }
+        </button>
+      </div>
+    }
+
+    <!-- Generated Content -->
+    @if (scene.generatedAssets; as assets) {
+      <!-- New Prompt Composer UI, shown only when an image exists -->
+      @if(scene.firstFrameImages.length > 0 || scene.finalFrameImages.length > 0) {
+        <div class="my-6 p-4 bg-gray-900/50 rounded-lg border border-gray-700 animate-fade-in">
+            <h3 class="font-bold text-lg mb-4 text-gray-300">Frame Prompt Editor</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Controls -->
+                <div class="md:col-span-1">
+                    <label for="frame-select" class="block text-sm font-medium text-gray-400 mb-1">1. Select Frame to Edit</label>
+                    <select id="frame-select" (change)="onSceneEditorTargetChange($event)" class="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 focus:ring-violet-500 focus:border-violet-500 transition">
+                        <option value="">-- Select a frame --</option>
+                        @if(scene.firstFrameImages.length > 0) { <option value="first">First Frame</option> }
+                        @if(scene.finalFrameImages.length > 0) { <option value="final">Final Frame</option> }
+                    </select>
+
+                    @if (sceneEditorTargetFrame()) {
+                        <div class="mt-4">
+                            <label for="scene-refine" class="block text-sm font-medium text-gray-400 mb-1">2. Add Details</label>
+                            <input id="scene-refine" type="text" [value]="sceneEditorModification()" (input)="onSceneEditorModificationInput($event)" placeholder="e.g., 'at sunset', 'looking sad'" class="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 focus:ring-violet-500 focus:border-violet-500 transition">
+                        </div>
+                    }
+                </div>
+                <!-- Composer and Actions -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-400 mb-1">Prompt Composer</label>
+                    <textarea readonly class="w-full h-24 bg-gray-900 border border-gray-600 rounded-md px-3 py-2 text-sm text-gray-400">{{ sceneEditorComposedPrompt() }}</textarea>
+                    
+                    <button (click)="beautifyScenePrompt()" [disabled]="!sceneEditorComposedPrompt().trim() || isBeautifyingScenePrompt()" class="w-full mt-2 px-4 py-2 bg-indigo-600 rounded-md font-semibold hover:bg-indigo-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors duration-300 text-sm flex items-center justify-center gap-2">
+                        @if (isBeautifyingScenePrompt()) {
+                            <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                            <span>Beautifying... @if(beautifyScenePromptElapsed() > 0) {{{ formatTimer(beautifyScenePromptElapsed()) }}}</span>
+                        } @else {
+                            <span>✨ Beautify Prompt</span>
+                        }
+                    </button>
+                    @if (sceneEditorBeautifiedPrompt()) {
+                        <button (click)="generateBeautifiedFrame()" [disabled]="scene.isGeneratingFirstFrame || scene.isGeneratingFinalFrame" class="w-full mt-2 px-4 py-2 bg-teal-600 rounded-md font-semibold hover:bg-teal-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors duration-300 text-sm flex items-center justify-center gap-2">
+                            @if (scene.isGeneratingFirstFrame || scene.isGeneratingFinalFrame) {
+                                <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                <span>Generating...
+                                  @if(scene.isGeneratingFirstFrame && scene.firstFrameGeneratingElapsed && scene.firstFrameGeneratingElapsed > 0) {
+                                    {{ formatTimer(scene.firstFrameGeneratingElapsed) }}
+                                  }
+                                  @if(scene.isGeneratingFinalFrame && scene.finalFrameGeneratingElapsed && scene.finalFrameGeneratingElapsed > 0) {
+                                    {{ formatTimer(scene.finalFrameGeneratingElapsed) }}
+                                  }
+                                </span>
+                            } @else {
+                                <span>Generate with Beautified Prompt</span>
+                            }
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+      }
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-6">
+        <!-- Text Prompts -->
+        <div class="space-y-4 text-sm animate-fade-in">
+          <h3 class="font-bold text-lg text-gray-300 border-b border-gray-700 pb-2">Generated Prompts</h3>
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <h5 class="font-semibold text-gray-300">🎬 Animation Prompt</h5>
+              <button (click)="regenerateAnimationPrompt(scene.id)" [disabled]="isRegeneratingAnimationPrompt()" class="px-2 py-1 text-xs bg-teal-800 rounded-md font-semibold hover:bg-teal-700 disabled:bg-gray-600 transition-colors flex items-center justify-center gap-1 min-w-[90px]">
+                @if (isRegeneratingAnimationPrompt()) {
+                  <svg class="animate-spin h-3 w-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span class="text-xs">Regenerating... @if(regenerateAnimationPromptElapsed() > 0) {{{ formatTimer(regenerateAnimationPromptElapsed()) }}}</span>
+                } @else {
+                  <span>Regenerate</span>
+                }
+              </button>
+            </div>
+            <div class="relative">
+              <p (click)="copyToClipboard(assets.animationPrompt)" class="bg-gray-900/50 p-2 rounded-md border border-gray-700 text-gray-400 text-xs cursor-pointer hover:border-violet-500 transition-colors">{{ assets.animationPrompt }}</p>
+              @if(copiedAnimationPrompt()) {
+                <span class="absolute top-1.5 right-1.5 bg-green-800 text-green-200 text-xs px-2 py-0.5 rounded animate-fade-in">Copied!</span>
+              }
+            </div>
+            @if(assets.animationPrompt_ru) {
+              <details class="mt-1 text-xs">
+                <summary class="cursor-pointer text-gray-500 hover:text-gray-300">Показать/скрыть перевод</summary>
+                <p class="mt-1 p-2 bg-gray-900/50 rounded border border-gray-700 text-gray-400">{{ assets.animationPrompt_ru }}</p>
+              </details>
+            }
+            @if (detectedCameraMovements().length > 0) {
+              <div class="mt-2">
+                <h6 class="text-xs font-semibold text-gray-400">Detected Camera Movements:</h6>
+                <div class="flex flex-wrap gap-1 mt-1">
+                  @for (move of detectedCameraMovements(); track move) {
+                    <span class="text-xs bg-gray-700 text-gray-300 rounded px-2 py-0.5">{{move}}</span>
+                  }
+                </div>
+              </div>
+            }
+            <div class="mt-2 flex gap-2">
+              <input 
+                type="text" 
+                [value]="animationPromptModification()" 
+                (input)="animationPromptModification.set($event.target.value)" 
+                placeholder="Add animation details (e.g., 'the character trips over a rock')" 
+                class="flex-grow bg-gray-700 border border-gray-600 rounded-md px-3 py-1.5 text-xs focus:ring-violet-500 focus:border-violet-500 transition"
+              >
+              <button 
+                (click)="beautifyAnimationPrompt(scene.id)" 
+                [disabled]="isBeautifyingAnimationPrompt() || !animationPromptModification().trim()" 
+                class="px-3 py-1 text-xs bg-indigo-600 rounded-md font-semibold hover:bg-indigo-700 disabled:bg-gray-600 transition-colors flex items-center justify-center gap-1 min-w-[80px]"
+              >
+                @if (isBeautifyingAnimationPrompt()) {
+                  <svg class="animate-spin h-3 w-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span class="text-xs">Beautifying... @if(beautifyAnimationPromptElapsed() > 0) {{{ formatTimer(beautifyAnimationPromptElapsed()) }}}</span>
+                } @else {
+                  <span>✨ Beautify</span>
+                }
+              </button>
+            </div>
+          </div>
+        </div>
+        <!-- Image Frames -->
+        <div class="grid grid-cols-2 gap-4 animate-fade-in">
+            <!-- First Frame -->
+            <div class="space-y-2">
+              <h5 class="font-semibold text-gray-300 mb-1 text-center" [class.text-violet-400]="sceneEditorTargetFrame() === 'first'">First Frame</h5>
+              <div class="aspect-[9/16] bg-gray-900/50 rounded-lg border border-gray-700 flex items-center justify-center overflow-hidden">
+                @if (scene.isGeneratingFirstFrame) {
+                  <svg class="animate-spin h-8 w-8 text-violet-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                } @else if (scene.firstFrameImages.length > 0) {
+                  <div class="relative w-full h-full">
+                    <a [href]="scene.firstFrameImages[scene.firstFrameImageIndex]" [download]="getDownloadFilename('first')" class="w-full h-full block group">
+                      <img [src]="scene.firstFrameImages[scene.firstFrameImageIndex]" alt="Generated first frame" class="w-full h-full object-cover group-hover:opacity-80 transition-opacity">
+                      <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                      </div>
+                    </a>
+                    @if (scene.firstFrameImages.length > 1) {
+                      <button (click)="navigateImage(scene.id, 'first', -1)" [disabled]="scene.firstFrameImageIndex === 0" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/80 text-white p-2 rounded-full disabled:opacity-30 disabled:cursor-not-allowed transition z-10">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                      </button>
+                      <button (click)="navigateImage(scene.id, 'first', 1)" [disabled]="scene.firstFrameImageIndex === scene.firstFrameImages.length - 1" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/80 text-white p-2 rounded-full disabled:opacity-30 disabled:cursor-not-allowed transition z-10">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
+                      </button>
+                      <div class="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs px-2 py-1 rounded-full z-10">
+                        {{ scene.firstFrameImageIndex + 1 }} / {{ scene.firstFrameImages.length }}
+                      </div>
+                    }
+                  </div>
+                } @else if (assets.firstFramePrompt) {
+                  <div class="p-3 flex flex-col justify-between text-xs w-full h-full">
+                    <div>
+                      <p class="text-gray-500 font-semibold mb-1 uppercase">EN Prompt:</p>
+                      <p class="text-gray-300 mb-3">{{ assets.firstFramePrompt }}</p>
+                      @if(assets.firstFramePrompt_ru) {
+                          <p class="text-gray-500 font-semibold mb-1 uppercase">RU Prompt:</p>
+                          <p class="text-gray-300">{{ assets.firstFramePrompt_ru }}</p>
+                      } @else {
+                          <p class="text-gray-400 italic">Translating Russian prompt...</p>
+                      }
+                    </div>
+                    <button (click)="generateImageForFrame(scene.id, 'first')" class="w-full mt-2 px-4 py-2 bg-violet-600 rounded-md font-semibold hover:bg-violet-700 transition-colors text-sm">Generate Image</button>
+                  </div>
+                }
+              </div>
+              @if(scene.firstFrameImages.length > 0) {
+                <details class="text-xs">
+                  <summary class="cursor-pointer text-gray-500 hover:text-gray-300">View Full Prompt</summary>
+                  <p class="mt-1 p-2 bg-gray-900/50 rounded border border-gray-700 text-gray-400 break-words">{{ fullPromptForFrame(scene, 'first') }}</p>
+                </details>
+              }
+            </div>
+            <!-- Final Frame -->
+            <div class="space-y-2">
+              <h5 class="font-semibold text-gray-300 mb-1 text-center" [class.text-violet-400]="sceneEditorTargetFrame() === 'final'">Final Frame</h5>
+              <div class="aspect-[9/16] bg-gray-900/50 rounded-lg border border-gray-700 flex items-center justify-center overflow-hidden">
+                @if (scene.isGeneratingFinalFrame) {
+                  <svg class="animate-spin h-8 w-8 text-violet-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                } @else if (scene.finalFrameImages.length > 0) {
+                  <div class="relative w-full h-full">
+                    <a [href]="scene.finalFrameImages[scene.finalFrameImageIndex]" [download]="getDownloadFilename('final')" class="w-full h-full block group">
+                      <img [src]="scene.finalFrameImages[scene.finalFrameImageIndex]" alt="Generated final frame" class="w-full h-full object-cover group-hover:opacity-80 transition-opacity">
+                      <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                      </div>
+                    </a>
+                    @if (scene.finalFrameImages.length > 1) {
+                      <button (click)="navigateImage(scene.id, 'final', -1)" [disabled]="scene.finalFrameImageIndex === 0" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/80 text-white p-2 rounded-full disabled:opacity-30 disabled:cursor-not-allowed transition z-10">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+                      </button>
+                      <button (click)="navigateImage(scene.id, 'final', 1)" [disabled]="scene.finalFrameImageIndex === scene.finalFrameImages.length - 1" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/80 text-white p-2 rounded-full disabled:opacity-30 disabled:cursor-not-allowed transition z-10">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
+                      </button>
+                      <div class="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs px-2 py-1 rounded-full z-10">
+                        {{ scene.finalFrameImageIndex + 1 }} / {{ scene.finalFrameImages.length }}
+                      </div>
+                    }
+                  </div>
+                } @else if (assets.finalFramePrompt) {
+                  <div class="p-3 flex flex-col justify-between text-xs w-full h-full">
+                    <div>
+                      <p class="text-gray-500 font-semibold mb-1 uppercase">EN Prompt:</p>
+                      <p class="text-gray-300 mb-3">{{ assets.finalFramePrompt }}</p>
+                      @if(assets.finalFramePrompt_ru) {
+                          <p class="text-gray-500 font-semibold mb-1 uppercase">RU Prompt:</p>
+                          <p class="text-gray-300">{{ assets.finalFramePrompt_ru }}</p>
+                      } @else {
+                          <p class="text-gray-400 italic">Translating Russian prompt...</p>
+                      }
+                    </div>
+                    <button (click)="generateImageForFrame(scene.id, 'final')" class="w-full mt-2 px-4 py-2 bg-violet-600 rounded-md font-semibold hover:bg-violet-700 transition-colors text-sm">Generate Image</button>
+                  </div>
+                }
+              </div>
+              @if(scene.finalFrameImages.length > 0) {
+                <details class="text-xs">
+                  <summary class="cursor-pointer text-gray-500 hover:text-gray-300">View Full Prompt</summary>
+                  <p class="mt-1 p-2 bg-gray-900/50 rounded border border-gray-700 text-gray-400 break-words">{{ fullPromptForFrame(scene, 'final') }}</p>
+                </details>
+              }
+            </div>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Navigation -->
+  <div class="mt-8 flex justify-between items-center">
+    <button (click)="previousScene()" [disabled]="currentSceneIndex() === 0" class="px-6 py-2 bg-gray-600 rounded-md font-semibold hover:bg-gray-700 disabled:bg-gray-800 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors duration-300">
+      Previous Scene
+    </button>
+    
+    @if (currentSceneIndex() === scenes().length - 1) {
+      <button (click)="step.set(5)" class="px-6 py-2 bg-green-600 rounded-md font-semibold hover:bg-green-700 transition-colors duration-300">
+        Finish & Generate Project Assets
+      </button>
+    } @else {
+      <button (click)="nextScene()" class="px-6 py-2 bg-violet-600 rounded-md font-semibold hover:bg-violet-700 transition-colors duration-300">
+        Next Scene
+      </button>
+    }
+  </div>
+}
+</div>
